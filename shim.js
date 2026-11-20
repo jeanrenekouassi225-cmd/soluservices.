@@ -37,7 +37,7 @@
     };
   }
   const DB = { doc, collection };
-  const USER = { id: async () => { await ready; return user.id; }, isOwner: () => !!user && !user.is_anonymous && user.email === C.ADMIN_EMAIL };
+  const USER = { id: async () => { await ready; return user.id; }, isOwner: () => !!user && !user.is_anonymous && String(user.email||"").trim().toLowerCase() === String(C.ADMIN_EMAIL||"").trim().toLowerCase() };
   window.claude = { use: async n => (n === "db" ? DB : n === "user" ? USER : null) };
   window.adminLogin = async () => {
     const email = prompt("E-mail administrateur"); const pw = email && prompt("Mot de passe"); if (!pw) return;
