@@ -1,5 +1,6 @@
 // Couche de compatibilité : fait fonctionner le site avec Supabase.
 (() => {
+  if (!window.CONFIG) { alert("config.js introuvable : vérifiez qu'il est bien à la racine du dépôt GitHub."); return; }
   const C = window.CONFIG, sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
   let user = null;
   const ready = (async () => {
@@ -42,6 +43,9 @@
   window.adminLogin = async () => {
     const email = prompt("E-mail administrateur"); const pw = email && prompt("Mot de passe"); if (!pw) return;
     const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-    if (error) { alert("Connexion refusée"); return; } location.reload();
+    if (error) { alert("Connexion refusée : " + error.message); return; }
+    const ok = String(email).trim().toLowerCase() === String(C.ADMIN_EMAIL || "").trim().toLowerCase();
+    alert("Connecté avec " + email + ". Administrateur reconnu : " + (ok ? "OUI" : "NON — ADMIN_EMAIL dans config.js vaut : " + C.ADMIN_EMAIL));
+    location.reload();
   };
 })();
