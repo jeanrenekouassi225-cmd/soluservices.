@@ -1,7 +1,12 @@
 // Couche de compatibilité : fait fonctionner le site avec Supabase.
 (() => {
   if (!window.CONFIG) { alert("config.js introuvable : vérifiez qu'il est bien à la racine du dépôt GitHub."); return; }
-  const C = window.CONFIG, sb = supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY);
+  const C = window.CONFIG, FALLBACK = "https://omjzkidtkfdkcffweiet.supabase.co";
+  let base = FALLBACK;
+  try { const u = new URL(String(C.SUPABASE_URL || "").trim()); if (/\.supabase\.co$/.test(u.hostname)) base = u.origin; } catch (e) {}
+  const key = String(C.SUPABASE_ANON_KEY || "").replace(/\s+/g, "");
+  if (key.length < 40 || /COLLEZ|VOTRE/.test(key)) { alert("Clé anon absente ou incorrecte dans config.js : collez la clé publique de Supabase (Paramètres du projet > Clés API)."); }
+  const sb = supabase.createClient(base, key);
   let user = null;
   const ready = (async () => {
     let { data: { session } } = await sb.auth.getSession();
@@ -42,6 +47,11 @@
   window.claude = { use: async n => (n === "db" ? DB : n === "user" ? USER : null) };
   window.adminLogin = async () => {
     const email = prompt("E-mail administrateur"); const pw = email && prompt("Mot de passe"); if (!pw) return;
+    try {
+      const h = await fetch(base + "/auth/v1/health", { headers: { apikey: key } });
+      const tx = await h.text();
+      alert("Test de la base (" + base + ") : statut " + h.status + "\n" + tx.slice(0, 200) + "\nClé : " + key.slice(0, 12) + "… (" + key.length + " caractères)");
+    } catch (e) { alert("Impossible de joindre " + base + " : " + e.message); }
     const { error } = await sb.auth.signInWithPassword({ email, password: pw });
     if (error) { alert("Connexion refusée : " + error.message); return; }
     const ok = String(email).trim().toLowerCase() === String(C.ADMIN_EMAIL || "").trim().toLowerCase();
