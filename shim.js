@@ -9,7 +9,7 @@
   let user = null;
   const ready = (async () => {
     let { data: { session } } = await sb.auth.getSession();
-    if (!session) { const r = await sb.auth.signInAnonymously(); session = r.data.session; }
+    if (!session) { const r = await sb.auth.signInAnonymously(); if (r.error) alert("Connexion visiteur impossible : " + r.error.message + "\nActivez « Autoriser les connexions anonymes » dans Supabase > Authentification."); session = r.data.session; }
     user = session && session.user;
   })();
   const listeners = new Set(), bump = () => listeners.forEach(f => f());
@@ -18,7 +18,7 @@
   function doc(path) {
     const col = cut(path)[0];
     const get = async () => { await ready; const { data } = await sb.from("docs").select("path,data").eq("path", path).maybeSingle(); return snap(data); };
-    const put = async d => { await ready; const { error } = await sb.from("docs").upsert({ path, col, data: d, updated_at: new Date().toISOString() }); if (error) throw error; bump(); };
+    const put = async d => { await ready; const { error } = await sb.from("docs").upsert({ path, col, data: d, updated_at: new Date().toISOString() }); if (error) { alert("Erreur d'enregistrement : " + error.message + "\n(chemin : " + path + ")"); throw error; } bump(); };
     return {
       get, set: put,
       async update(d) { const s = await get(); return put({ ...(s.exists ? s.data() : {}), ...d }); },
