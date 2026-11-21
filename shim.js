@@ -2,8 +2,7 @@
 (() => {
   if (!window.CONFIG) { alert("config.js introuvable : vérifiez qu'il est bien à la racine du dépôt GitHub."); return; }
   const C = window.CONFIG, FALLBACK = "https://omjzkidtkfdkcffweiet.supabase.co";
-  let base = FALLBACK;
-  try { const u = new URL(String(C.SUPABASE_URL || "").trim()); if (/\.supabase\.co$/.test(u.hostname)) base = u.origin; } catch (e) {}
+  const base = FALLBACK; // adresse du projet, volontairement fixe
   const key = String(C.SUPABASE_ANON_KEY || "").replace(/\s+/g, "");
   if (key.length < 40 || /COLLEZ|VOTRE/.test(key)) { alert("Clé anon absente ou incorrecte dans config.js : collez la clé publique de Supabase (Paramètres du projet > Clés API)."); }
   const sb = supabase.createClient(base, key);
